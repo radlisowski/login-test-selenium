@@ -1,14 +1,15 @@
 const {Builder, By, Key, until} = require('selenium-webdriver');
 const driver = new Builder().forBrowser('chrome').build();
 const assert = require("assert");
-const { resolveObjectURL } = require('buffer');
-const { type } = require('os');
 
 describe('01 The user is able to see the labels and controls including text-boxes, buttons and labels on the Login Page and can interacted with.', async function() {
 
     beforeEach(async function() {
+
         await driver.get('https://radlisowski.github.io/login.html');
+
         let title = await driver.getTitle();
+
         assert.strictEqual(title, "Rad Lisowski");
 
         driver.manage().setTimeouts({implicit: 0.5 })
@@ -53,9 +54,7 @@ describe('01 The user is able to see the labels and controls including text-boxe
 
     it('LP04-Verifying Login button can be pressed', async function() {
 
-        let loginBtn = await driver.findElement(By.id('signin-button'));
-        
-        await loginBtn.click();
+        await pressLoginButtonWith("click");
     
         let resultMessage = await driver.findElement(By.id('error-message')).getText();
 
@@ -65,7 +64,6 @@ describe('01 The user is able to see the labels and controls including text-boxe
     it('LP05-Verify that as soon as the login page opens, by default the cursor should remain on the username textbox.', async function() {
     
         await driver.sleep(2000);
-
         await driver.findElement(By.css('input:focus')).sendKeys("focused");
 
         let enteredText = await driver.findElement(By.id('username-field')).getAttribute("value");
@@ -77,9 +75,7 @@ describe('01 The user is able to see the labels and controls including text-boxe
     it('LP06-Verify that the user is able to navigate to "Password" field by pressing "TAB" key on the keyboard.', async function() {
 
         await driver.sleep(2000);
-
         await driver.findElement(By.css('body')).sendKeys(Key.TAB)
-
         await driver.findElement(By.css('input:focus')).sendKeys("tabTest");
 
         let enteredText = await driver.findElement(By.id('password-field')).getAttribute("value");
@@ -91,7 +87,6 @@ describe('01 The user is able to see the labels and controls including text-boxe
 
         await driver.findElement(By.css('body')).sendKeys(Key.TAB);
         await driver.findElement(By.css('body')).sendKeys(Key.TAB);
-        
         await driver.findElement(By.id("signin-button")).sendKeys(Key.ENTER)
     
         let resultMessage = await driver.findElement(By.id('error-message')).getText();
@@ -110,8 +105,11 @@ describe('01 The user is able to see the labels and controls including text-boxe
 describe('02 The user interacting with the UI via varius actions (positive/negative)', async function(){
 
     beforeEach(async function() {
+        
         await driver.get('https://radlisowski.github.io/login.html');
+
         let title = await driver.getTitle();
+
         assert.strictEqual(title, "Rad Lisowski");
 
         driver.manage().setTimeouts({implicit: 0.5 })
@@ -119,11 +117,9 @@ describe('02 The user interacting with the UI via varius actions (positive/negat
 
     it('LP09-Verify that the user is able to login by entering valid credentials and clicking on the ‘Login’ button.', async function () {
 
-        let loginBtn = await driver.findElement(By.id('signin-button'));
-        
         await enterUsername('test');
         await enterPassword('test');
-        await loginBtn.click();
+        await pressLoginButtonWith("click");
     
         let resultMessage = await driver.findElement(By.id('success-message')).getText();
 
@@ -132,11 +128,9 @@ describe('02 The user interacting with the UI via varius actions (positive/negat
 
     it(`LP10-Verify that the user is able to login by entering valid credentials and pressing Enter key.`, async function() {
 
-        let loginBtn = await driver.findElement(By.id('signin-button'));
-        
         await enterUsername('test');
         await enterPassword('test');
-        await loginBtn.sendKeys(Key.ENTER);
+        await pressLoginButtonWith("enter");
     
         let resultMessage = await driver.findElement(By.id('success-message')).getText();
 
@@ -145,11 +139,9 @@ describe('02 The user interacting with the UI via varius actions (positive/negat
 
     it(`LP11=Verify that the user is NOT able to login by entering INVALID credentials and clicking on the ‘Login’ button.`, async function() {
 
-        let loginBtn = await driver.findElement(By.id('signin-button'));
-        
         await enterUsername('bla');
         await enterPassword('blabla');
-        await loginBtn.click();
+        await pressLoginButtonWith("click");
     
         let resultMessage = await driver.findElement(By.id('error-message')).getText();
 
@@ -157,13 +149,10 @@ describe('02 The user interacting with the UI via varius actions (positive/negat
     })
 
     it(`LP12-Verify that the validation message gets displayed in case the user leaves the username field as blank and that the message does not indicate which is wrong or empty.`, async function() {
-        
-        let loginBtn = await driver.findElement(By.id('signin-button'));
-        
-        await enterPassword('blabla');
 
-        await loginBtn.click();
-    
+        await enterPassword('blabla');
+        await pressLoginButtonWith("click");
+
         let resultMessage = await driver.findElement(By.id('error-message')).getText();
 
         assert.strictEqual(resultMessage, "Wrong Username or Password");
@@ -171,11 +160,8 @@ describe('02 The user interacting with the UI via varius actions (positive/negat
 
     it(`LP13-Verify that the validation message gets displayed in case the user leaves the password field as blank and that the message does not indicate which is wrong or empty.`, async function() {
 
-        let loginBtn = await driver.findElement(By.id('signin-button'));
-        
         await enterUsername('blabla');
-
-        await loginBtn.click();
+        await pressLoginButtonWith("click");
     
         let resultMessage = await driver.findElement(By.id('error-message')).getText();
 
@@ -195,5 +181,16 @@ async function enterPassword(password) {
 
     let passwordFld = await driver.findElement(By.id('password-field')); 
     await passwordFld.sendKeys(password);
+}
+
+async function pressLoginButtonWith(clickOrEnter) {
+    
+    let loginBtn = await driver.findElement(By.id('signin-button'));
+
+    if (clickOrEnter === "click") {
+        await loginBtn.click();
+    } else {
+        await loginBtn.sendKeys(Key.ENTER);
+    }
 }
 
